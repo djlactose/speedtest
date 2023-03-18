@@ -1,8 +1,11 @@
 from flask import Flask, jsonify
 from datetime import datetime
 import time
+from flask_cors import CORS
 
 app = Flask(__name__)
+app.config['CORS_ALLOWED_ORIGINS'] = '*'
+CORS(app)
 
 @app.route('/ping')
 def ping():
