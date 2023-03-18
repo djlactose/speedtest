@@ -69,81 +69,46 @@
       xhr.open("GET", "http://" + hostname + ":5000/ping", true);
       xhr.send();
     }
-
+  
     function testJitter() {
       resultsDiv.innerHTML = "Testing jitter...";
-      let startTime = new Date().getTime();
-      let pingTimes = [];
-      let numPings = 5;
       let xhr = new XMLHttpRequest();
-      let hostname = location.hostname;
+      let hostname = window.location.hostname;
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
           let endTime = new Date().getTime();
-          let duration = (endTime - startTime) / 1000;
-          let pingTime = duration.toFixed(2);
-          pingTimes.push(pingTime);
-          console.log(pingTimes);
-          resultsDiv.innerHTML = "Ping " + pingTimes.length + " completed";
-          if (pingTimes.length === numPings) {
-            let jitter = calculateJitter(pingTimes).toFixed(2);
-            resultsDiv.innerHTML = "Your jitter is: " + jitter + " seconds";
-          } else {
-            xhr.open("GET", "http://" + hostname + ":5000/ping", true);
-            xhr.send();
-          }
+          let startTime = JSON.parse(xhr.responseText).start_time;
+          let pingTime = JSON.parse(xhr.responseText).ping_time;
+          let jitter = (endTime - startTime - pingTime) / 2;
+          resultsDiv.innerHTML = "Your jitter to " + hostname + " is: " + jitter.toFixed(2) + " milliseconds";
         }
       };
-      xhr.open("GET", "http://" + hostname + ":5000/ping", true);
+      xhr.open("GET", "http://" + hostname + ":5000/jitter", true);
       xhr.send();
-
-      function calculateJitter(pingTimes) {
-        let sumOfDiffs = 0;
-        for (let i = 1; i < pingTimes.length; i++) {
-          let diff = pingTimes[i] - pingTimes[i - 1];
-          sumOfDiffs += diff;
-        }
-        let avgDiff = sumOfDiffs / (pingTimes.length - 1);
-        return avgDiff;
-      }
     }
-
+  
     function testAll() {
-      let downloadSpeed = null;
-      let uploadSpeed = null;
-      let pingRate = null;
-      let jitter = null;
-
-      let checkCompletion = function() {
-        if (downloadSpeed !== null && uploadSpeed !== null && pingRate !== null && jitter !== null) {
-          let summary = "Download speed: " + downloadSpeed + " Mbps\n" +
-                        "Upload speed: " + uploadSpeed + " Mbps\n" +
-                        "Ping rate: " + pingRate + " seconds\n" +
-                        "Jitter: " + jitter + " seconds";
-          resultsDiv.innerHTML = summary;
-        }
-      }
-
-      testDownloadSpeed(function(result) {
-        downloadSpeed = result;
-        checkCompletion();
-      });
-
-      testUploadSpeed(function(result) {
-        uploadSpeed = result;
-        checkCompletion();
-      });
-
-      testPingRate(function(result) {
-        pingRate = result;
-        checkCompletion();
-      });
-
-      testJitter(function(result) {
-        jitter = result;
-        checkCompletion();
-      });
+      resultsDiv.innerHTML = "Testing all...";
+      let downloadSpeed, uploadSpeed, pingRate, jitter;
+  
+      testDownloadSpeed();
+      setTimeout(function() {
+        downloadSpeed = resultsDiv.innerHTML;
+        testUploadSpeed();
+        setTimeout(function() {
+          uploadSpeed = resultsDiv.innerHTML;
+          testPingRate();
+          setTimeout(function() {
+            pingRate = resultsDiv.innerHTML;
+            testJitter();
+            setTimeout(function() {
+              jitter = resultsDiv.innerHTML;
+              resultsDiv.innerHTML = downloadSpeed + "<br>" + uploadSpeed + "<br>" + pingRate + "<br>" + jitter;
+            }, 5000);
+          }, 5000);
+        }, 5000);
+      }, 5000);
     }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
