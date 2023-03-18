@@ -109,10 +109,40 @@
     }
 
     function testAll() {
-      testDownloadSpeed();
-      testUploadSpeed();
-      testPingRate();
-      testJitter();
+      let downloadSpeed = null;
+      let uploadSpeed = null;
+      let pingRate = null;
+      let jitter = null;
+
+      let checkCompletion = function() {
+        if (downloadSpeed !== null && uploadSpeed !== null && pingRate !== null && jitter !== null) {
+          let summary = "Download speed: " + downloadSpeed + " Mbps\n" +
+                        "Upload speed: " + uploadSpeed + " Mbps\n" +
+                        "Ping rate: " + pingRate + " seconds\n" +
+                        "Jitter: " + jitter + " seconds";
+          resultsDiv.innerHTML = summary;
+        }
+      }
+
+      testDownloadSpeed(function(result) {
+        downloadSpeed = result;
+        checkCompletion();
+      });
+
+      testUploadSpeed(function(result) {
+        uploadSpeed = result;
+        checkCompletion();
+      });
+
+      testPingRate(function(result) {
+        pingRate = result;
+        checkCompletion();
+      });
+
+      testJitter(function(result) {
+        jitter = result;
+        checkCompletion();
+      });
     }
   </script>
 </body>
