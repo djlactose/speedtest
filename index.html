@@ -72,12 +72,15 @@
   
     function testJitter() {
       resultsDiv.innerHTML = "Testing jitter...";
+      let startTime = new Date().getTime();
       let xhr = new XMLHttpRequest();
       let hostname = window.location.hostname;
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
-          let jitter = parseFloat(xhr.responseText).toFixed(2);
-          resultsDiv.innerHTML += "<br>Your jitter is: " + jitter + " ms";
+          let endTime = new Date().getTime();
+          let duration = (endTime - startTime) / 1000;
+          let jitter = JSON.parse(xhr.responseText).jitter.toFixed(2);
+          resultsDiv.innerHTML = "Your jitter is: " + jitter + " ms";
         }
       };
       xhr.open("GET", "http://" + hostname + ":5000/jitter", true);
