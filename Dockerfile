@@ -13,4 +13,4 @@ RUN apt-get update &&\
 apt-get install python3 python3-pip -y && \
 pip install flask flask-cors
 
-ENTRYPOINT ["/root/bin/run.sh"]
+ENTRYPOINT /root/bin/run.sh

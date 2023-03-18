@@ -9,6 +9,7 @@
   <button onclick="testUploadSpeed()">Test Upload Speed</button>
   <button onclick="testPingRate()">Test Ping Rate</button>
   <button onclick="testJitter()">Test Jitter</button>
+  <button onclick="testAll()">Test All</button>
   <div id="results"></div>
 
   <script>
@@ -105,6 +106,13 @@
         let avgDiff = sumOfDiffs / (pingTimes.length - 1);
         return avgDiff;
       }
+    }
+
+    function testAll() {
+      testDownloadSpeed();
+      testUploadSpeed();
+      testPingRate();
+      testJitter();
     }
   </script>
 </body>

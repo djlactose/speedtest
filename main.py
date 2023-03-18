@@ -30,5 +30,5 @@ class PingHandler(CORSRequestHandler):
         self.send_error(404, 'Not Found')
 
 if __name__ == '__main__':
-    server = ThreadingSimpleServer(('localhost', 5000), PingHandler)
+    server = ThreadingSimpleServer(('', 5000), PingHandler)
     server.serve_forever()
