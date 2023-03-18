@@ -1,34 +1,27 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from socketserver import ThreadingMixIn
+from flask import Flask, jsonify
+from datetime import datetime
 import time
-import random
 
-# CORS Policy
-class CORSRequestHandler(BaseHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        BaseHTTPRequestHandler.end_headers(self)
+app = Flask(__name__)
 
-class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
-    pass
+@app.route('/ping')
+def ping():
+    return 'pong'
 
-class PingHandler(CORSRequestHandler):
-    def do_GET(self):
-        if self.path == '/ping':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
+@app.route('/jitter')
+def jitter():
+    # Send 10 packets and calculate the jitter
+    total_jitter = 0
+    for i in range(10):
+        start_time = time.time()
+        response = app.test_client().get('/ping')
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        total_jitter += elapsed_time
 
-            delay = random.uniform(0.1, 1.0)
-            time.sleep(delay)
-
-            self.wfile.write(bytes("Ping response in " + str(delay) + " seconds", 'utf-8'))
-            return
-
-        self.send_error(404, 'Not Found')
+    # Calculate the average jitter and return it as a JSON object
+    avg_jitter = total_jitter / 10 * 1000
+    return jsonify(jitter=avg_jitter)
 
 if __name__ == '__main__':
-    server = ThreadingSimpleServer(('', 5000), PingHandler)
-    server.serve_forever()
+    app.run(port=5000, debug=True)

@@ -10,7 +10,8 @@ COPY main.py /root/bin/
 COPY run.sh /root/bin/
 
 RUN apt-get update &&\
-apt-get install python3 python3-pip -y && \
+apt-get install iputils-ping python3 python3-pip -y && \
+apt-get clean && \
 pip install flask flask-cors
 
 ENTRYPOINT /root/bin/run.sh

@@ -76,11 +76,8 @@
       let hostname = window.location.hostname;
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
-          let endTime = new Date().getTime();
-          let startTime = JSON.parse(xhr.responseText).start_time;
-          let pingTime = JSON.parse(xhr.responseText).ping_time;
-          let jitter = (endTime - startTime - pingTime) / 2;
-          resultsDiv.innerHTML = "Your jitter to " + hostname + " is: " + jitter.toFixed(2) + " milliseconds";
+          let jitter = parseFloat(xhr.responseText).toFixed(2);
+          resultsDiv.innerHTML += "<br>Your jitter is: " + jitter + " ms";
         }
       };
       xhr.open("GET", "http://" + hostname + ":5000/jitter", true);
@@ -90,7 +87,7 @@
     function testAll() {
       resultsDiv.innerHTML = "Testing all...";
       let downloadSpeed, uploadSpeed, pingRate, jitter;
-  
+
       testDownloadSpeed();
       setTimeout(function() {
         downloadSpeed = resultsDiv.innerHTML;
@@ -109,6 +106,7 @@
         }, 5000);
       }, 5000);
     }
+
     </script>
   </body>
 </html>
