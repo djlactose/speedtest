@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Internet Speed Test</title>
+</head>
+<body>
+  <h1>Internet Speed Test</h1>
+  <button onclick="testDownloadSpeed()">Test Download Speed</button>
+  <button onclick="testUploadSpeed()">Test Upload Speed</button>
+  <button onclick="testPingRate()">Test Ping Rate</button>
+  <button onclick="testJitter()">Test Jitter</button>
+  <div id="results"></div>
+
+  <script>
+    let resultsDiv = document.querySelector("#results");
+
+    function testDownloadSpeed() {
+      resultsDiv.innerHTML = "Testing download speed...";
+      let startTime = new Date().getTime();
+      let xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          let endTime = new Date().getTime();
+          let duration = (endTime - startTime) / 1000;
+          let fileSize = 100 * 1024 * 1024; // 100 MB in bytes
+          let speed = fileSize / duration;
+          let downloadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
+          resultsDiv.innerHTML = "Your download speed is: " + downloadSpeedMbps + " Mbps";
+        }
+      };
+      xhr.open("GET", "./100MB.bin", true);
+      xhr.send();
+    }
+
+    function testUploadSpeed() {
+      resultsDiv.innerHTML = "Testing upload speed...";
+      let startTime = new Date().getTime();
+      let fileSize = 100 * 1024 * 1024; // 100 MB in bytes
+      let blob = new Blob([new ArrayBuffer(fileSize)], {type: 'application/octet-stream'});
+      let xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          let endTime = new Date().getTime();
+          let duration = (endTime - startTime) / 1000;
+          let speed = fileSize / duration;
+          let uploadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
+          resultsDiv.innerHTML = "Your upload speed is: " + uploadSpeedMbps + " Mbps";
+        }
+      };
+      xhr.open("POST", window.location.href, true);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.send(blob);
+    }
+
+    function testPingRate() {
+      resultsDiv.innerHTML = "Testing ping rate...";
+      let startTime = new Date().getTime();
+      let xhr = new XMLHttpRequest();
+      let hostname = window.location.hostname;
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          let endTime = new Date().getTime();
+          let duration = (endTime - startTime) / 1000;
+          let pingRate = duration.toFixed(2);
+          resultsDiv.innerHTML = "Your ping rate to " + hostname + " is: " + pingRate + " seconds";
+        }
+      };
+      xhr.open("GET", "http://" + hostname + ":5000/ping", true);
+      xhr.send();
+    }
+
+    function testJitter() {
+      resultsDiv.innerHTML = "Testing jitter...";
+      let startTime = new Date().getTime();
+      let pingTimes = [];
+      let numPings = 5;
+      let xhr = new XMLHttpRequest();
+      let hostname = location.hostname;
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+          let endTime = new Date().getTime();
+          let duration = (endTime - startTime) / 1000;
+          let pingTime = duration.toFixed(2);
+          pingTimes.push(pingTime);
+          console.log(pingTimes);
+          resultsDiv.innerHTML = "Ping " + pingTimes.length + " completed";
+          if (pingTimes.length === numPings) {
+            let jitter = calculateJitter(pingTimes).toFixed(2);
+            resultsDiv.innerHTML = "Your jitter is: " + jitter + " seconds";
+          } else {
+            xhr.open("GET", "http://" + hostname + ":5000/ping", true);
+            xhr.send();
+          }
+        }
+      };
+      xhr.open("GET", "http://" + hostname + ":5000/ping", true);
+      xhr.send();
+
+      function calculateJitter(pingTimes) {
+        let sumOfDiffs = 0;
+        for (let i = 1; i < pingTimes.length; i++) {
+          let diff = pingTimes[i] - pingTimes[i - 1];
+          sumOfDiffs += diff;
+        }
+        let avgDiff = sumOfDiffs / (pingTimes.length - 1);
+        return avgDiff;
+      }
+    }
+  </script>
+</body>
+</html>
