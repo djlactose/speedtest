@@ -4,8 +4,7 @@ import time
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['CORS_ALLOWED_ORIGINS'] = '*'
-CORS(app)
+cors = CORS(app)
 
 @app.route('/ping')
 def ping():
@@ -24,7 +23,9 @@ def jitter():
 
     # Calculate the average jitter and return it as a JSON object
     avg_jitter = total_jitter / 10 * 1000
-    return jsonify(jitter=avg_jitter)
+    response = jsonify(jitter=avg_jitter)
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
