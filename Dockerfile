@@ -1,7 +1,6 @@
 FROM nginx
 
 EXPOSE 80
-EXPOSE 5000
 
 COPY index.html /usr/share/nginx/html/
 COPY 100MB.bin /usr/share/nginx/html/
