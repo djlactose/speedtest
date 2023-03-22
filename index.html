@@ -2,20 +2,50 @@
 <html>
 <head>
   <title>Internet Speed Test</title>
+  <style>
+    .progress-bar {
+      background-color: #f3f3f3;
+      border: 1px solid #bbb;
+      height: 20px;
+      width: 100%;
+    }
+
+    .progress {
+      background-color: #4caf50;
+      height: 100%;
+      width: 0%;
+    }
+  </style>
 </head>
 <body>
   <h1>Internet Speed Test</h1>
   <button onclick="testDownloadSpeed()">Test Download Speed</button>
+  <div class="progress-bar"><div id="download-progress" class="progress"></div></div>
   <button onclick="testUploadSpeed()">Test Upload Speed</button>
+  <div class="progress-bar"><div id="upload-progress" class="progress"></div></div>
   <button onclick="testPingRate()">Test Ping Rate</button>
+  <div class="progress-bar"><div id="ping-progress" class="progress"></div></div>
   <button onclick="testJitter()">Test Jitter</button>
+  <div class="progress-bar"><div id="jitter-progress" class="progress"></div></div>
   <button onclick="testAll()">Test All</button>
   <div id="results"></div>
 
   <script>
     let resultsDiv = document.querySelector("#results");
 
-    async function testDownloadSpeed() {
+    function updateProgressBar(progressBarId, percentage) {
+      let progressBar = document.querySelector("#" + progressBarId);
+      progressBar.style.width = percentage + "%";
+    }
+
+    function resetProgressBars() {
+      updateProgressBar("download-progress", 0);
+      updateProgressBar("upload-progress", 0);
+      updateProgressBar("ping-progress", 0);
+      updateProgressBar("jitter-progress", 0);
+    }
+
+  async function testDownloadSpeed() {
     let startTime = new Date().getTime();
     let xhr = new XMLHttpRequest();
 
@@ -30,10 +60,23 @@
           resolve(downloadSpeedMbps);
         }
       };
+      xhr.onprogress = (function() {
+        let lastPercentage = 0;
+        return function(event) {
+          if (event.lengthComputable) {
+            let percentage = (event.loaded / event.total) * 100;
+            if (percentage > lastPercentage) {
+              updateProgressBar("download-progress", percentage);
+              lastPercentage = percentage;
+            }
+          }
+        };
+      })();
       xhr.open("GET", "./100MB.bin", true);
       xhr.send();
     });
   }
+
 
   async function testUploadSpeed() {
     let startTime = new Date().getTime();
@@ -51,6 +94,12 @@
           resolve(uploadSpeedMbps);
         }
       };
+      xhr.onprogress = function(event) {
+          if (event.lengthComputable) {
+            let percentage = (event.loaded / event.total) * 100;
+            updateProgressBar("upload-progress", percentage);
+          }
+        };
       xhr.open("POST", window.location.href, true);
       xhr.setRequestHeader("Content-Type", "application/octet-stream");
       xhr.send(blob);
@@ -95,12 +144,15 @@
   }
 
     async function testAll() {
+      resetProgressBars();
       resultsDiv.innerHTML = "Testing all...<br>";
 
       let downloadSpeed = await testDownloadSpeed();
       let uploadSpeed = await testUploadSpeed();
       let pingRate = await testPingRate();
+      updateProgressBar("ping-progress", 100);
       let jitter = await testJitter();
+      updateProgressBar("jitter-progress", 100);
 
       resultsDiv.innerHTML = "Summary of all tests:<br>";
       resultsDiv.innerHTML += "Your download speed is: " + downloadSpeed + " Mbps<br>";
@@ -113,24 +165,28 @@
       resultsDiv.innerHTML = "Running Download Speed Test..."
       let downloadSpeed = await testDownloadSpeed();
       resultsDiv.innerHTML = "Your download speed is: " + downloadSpeed + " Mbps";
+      updateProgressBar("download-progress", 100);
     });
 
     document.querySelector("button[onclick='testUploadSpeed()']").addEventListener("click", async function() {
       resultsDiv.innerHTML = "Running Upload Speed Test..."
       let uploadSpeed = await testUploadSpeed();
       resultsDiv.innerHTML = "Your upload speed is: " + uploadSpeed + " Mbps";
+      updateProgressBar("upload-progress", 100);
     });
 
     document.querySelector("button[onclick='testPingRate()']").addEventListener("click", async function() {
       resultsDiv.innerHTML = "Running Ping Test..."
       let pingRate = await testPingRate();
       resultsDiv.innerHTML = "Your ping rate to " + window.location.hostname + " is: " + pingRate + " seconds";
+      updateProgressBar("ping-progress", 100);
     });
 
     document.querySelector("button[onclick='testJitter()']").addEventListener("click", async function() {
       resultsDiv.innerHTML = "Running Jitter Test..."
       let jitter = await testJitter();
       resultsDiv.innerHTML = "Your jitter is: " + jitter + " ms";
+      updateProgressBar("jitter-progress", 100);
     });
 
     document.querySelector("button[onclick='testAll()']").addEventListener("click", testAll);
