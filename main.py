@@ -1,9 +1,10 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from datetime import datetime
 import time
 from flask_cors import CORS
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB in bytes
 cors = CORS(app)
 
 @app.route('/ping')
@@ -30,7 +31,9 @@ def jitter():
 @app.route('/upload', methods=['POST'])
 def upload():
     # Receive the file and don't save it
-    file = request.files['file']
+    file = request.files.get('file')
+    if not file:
+        return jsonify(message="No file found"), 400
     return jsonify(message="Upload successful")
 
 if __name__ == '__main__':

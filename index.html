@@ -46,60 +46,91 @@
     }
 
     async function testDownloadSpeed() {
+      updateProgressBar("download-progress", 0);
       let startTime = new Date().getTime();
       let xhr = new XMLHttpRequest();
+      let lastPercentage = 0;
+      let totalBytes = 100 * 1024 * 1024; // 100 MB in bytes
+      let interval;
+
+      function startProgressTracker() {
+        let initialProgress = 0;
+        updateProgressBar("download-progress", initialProgress);
+        interval = setInterval(function () {
+          if (initialProgress < 95) {
+            initialProgress += 1;
+            updateProgressBar("download-progress", initialProgress);
+          }
+        }, 500);
+      }
+
+      function stopProgressTracker() {
+        clearInterval(interval);
+      }
 
       return new Promise((resolve, reject) => {
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4 && xhr.status == 200) {
             let endTime = new Date().getTime();
             let duration = (endTime - startTime) / 1000;
-            let fileSize = 100 * 1024 * 1024; // 100 MB in bytes
-            let speed = fileSize / duration;
+            let speed = totalBytes / duration;
             let downloadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
+            stopProgressTracker();
+            updateProgressBar("download-progress", 100);
             resolve(downloadSpeedMbps);
           }
         };
+
         xhr.onprogress = function(event) {
           if (event.lengthComputable) {
-            let percentage = (event.loaded / event.total) * 100;
-            updateProgressBar("download-progress", percentage);
+            let percentage = Math.floor((event.loaded / event.total) * 100);
+            if (percentage > lastPercentage) {
+              lastPercentage = percentage;
+            }
           }
         };
+
         xhr.open("GET", "./100MB.bin", true);
         xhr.send();
+        startProgressTracker();
       });
     }
 
-  async function testUploadSpeed() {
-    let startTime = new Date().getTime();
-    let fileSize = 99 * 1024 * 1024; // 100 MB in bytes
-    let blob = new Blob([new ArrayBuffer(fileSize)], {type: 'application/octet-stream'});
-    let xhr = new XMLHttpRequest();
+    async function testUploadSpeed() {
+      let startTime = new Date().getTime();
+      let fileSize = 99 * 1024 * 1024; // 100 MB in bytes
+      let blob = new Blob([new ArrayBuffer(fileSize)], {type: 'application/octet-stream'});
+      let formData = new FormData();
+      formData.append("file", blob);
 
-    return new Promise((resolve, reject) => {
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-          let endTime = new Date().getTime();
-          let duration = (endTime - startTime) / 1000;
-          let speed = fileSize / duration;
-          let uploadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
-          resolve(uploadSpeedMbps);
-        }
-      };
-      xhr.onprogress = function(event) {
-          if (event.lengthComputable) {
-            let percentage = (event.loaded / event.total) * 100;
-            updateProgressBar("upload-progress", percentage);
+      return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        let maxProgress = 0;
+
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+            let endTime = new Date().getTime();
+            let duration = (endTime - startTime) / 1000;
+            let speed = fileSize / duration;
+            let uploadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
+            resolve(uploadSpeedMbps);
           }
         };
-      xhr.open("POST", window.location.href, true);
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-      xhr.send(blob);
-    });
-  }
+        xhr.upload.onprogress = function(event) {
+          if (event.lengthComputable) {
+            let percentage = (event.loaded / event.total) * 100;
+            maxProgress = Math.max(maxProgress, percentage);
+            updateProgressBar("upload-progress", maxProgress);
+          }
+        };
+
+        xhr.open("POST", "/upload", true);
+        xhr.send(formData);
+      });
+    }
 
   async function testPingRate() {
+    updateProgressBar("ping-progress", 0);
     let startTime = new Date().getTime();
     let xhr = new XMLHttpRequest();
 
@@ -118,6 +149,7 @@
   }
 
   async function testJitter() {
+    updateProgressBar("jitter-progress", 0);
     let startTime = new Date().getTime();
     let xhr = new XMLHttpRequest();
     xhr.withCredentials = true;
