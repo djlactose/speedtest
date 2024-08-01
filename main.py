@@ -1,40 +1,54 @@
-from flask import Flask, jsonify, request
-from datetime import datetime
+from flask import Flask, request, send_file, jsonify, Response
 import time
-from flask_cors import CORS
+import os
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB in bytes
-cors = CORS(app)
+
+@app.route('/')
+def index():
+    return send_file('index.html')
+
+@app.route('/download')
+def download_file():
+    file_path = '100MB.bin'
+    def generate():
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(4096):
+                yield chunk
+    return Response(generate(), headers={
+        'Content-Disposition': 'attachment; filename=100MB.bin',
+        'Content-Type': 'application/octet-stream'
+    })
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    start_time = time.time()
+    file = request.files['file']
+    file.save(os.path.join("/tmp", file.filename))
+    end_time = time.time()
+    duration = end_time - start_time
+    return jsonify(duration=duration)
 
 @app.route('/ping')
 def ping():
-    return 'pong'
+    start_time = time.time()
+    end_time = time.time()
+    duration = end_time - start_time
+    return jsonify(ping=duration)
 
 @app.route('/jitter')
 def jitter():
-    # Send 10 packets and calculate the jitter
-    total_jitter = 0
-    for i in range(50):
-        start_time = time.time()
-        response = app.test_client().get('/ping')
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        total_jitter += elapsed_time
-
-    # Calculate the average jitter and return it as a JSON object
-    avg_jitter = total_jitter / 50 * 1000
-    response = jsonify(jitter=avg_jitter)
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    return response
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    # Receive the file and don't save it
-    file = request.files.get('file')
-    if not file:
-        return jsonify(message="No file found"), 400
-    return jsonify(message="Upload successful")
+    start_time = time.time()
+    jitter_values = []
+    for _ in range(10):
+        jitter_start = time.time()
+        time.sleep(0.1)
+        jitter_end = time.time()
+        jitter_values.append(jitter_end - jitter_start)
+    end_time = time.time()
+    duration = end_time - start_time
+    jitter = sum(jitter_values) / len(jitter_values)
+    return jsonify(jitter=jitter, duration=duration)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80)

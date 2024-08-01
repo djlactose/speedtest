@@ -1,16 +1,17 @@
-FROM nginx
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy the current directory contents into the container at /usr/src/app
+COPY . .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 80 available to the world outside this container
 EXPOSE 80
 
-COPY index.html /usr/share/nginx/html/
-COPY 100MB.bin /usr/share/nginx/html/
-COPY default.conf /etc/nginx/conf.d/
-COPY main.py /root/bin/
-COPY run.sh /root/bin/
-
-RUN apt-get update &&\
-apt-get install iputils-ping python3 python3-pip -y && \
-apt-get clean && \
-pip install flask flask-cors
-
-ENTRYPOINT /root/bin/run.sh
+# Run the application with Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:80", "main:app"]
