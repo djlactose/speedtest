@@ -1,302 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Internet Speed Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            margin-top: 20px;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            max-width: 600px;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        .progress-bar-container {
-            margin: 20px 0;
-        }
-        .progress-bar {
-            background-color: #e0e0e0;
-            border: 1px solid #bbb;
-            border-radius: 10px;
-            overflow: hidden;
-            height: 20px;
-            width: 100%;
-        }
-        .progress {
-            background-color: #2196F3; /* Changed to blue */
-            height: 100%;
-            width: 0%;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #2196F3; /* Changed to blue */
-            color: white;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #1976D2; /* Changed to a darker blue */
-        }
-        #results {
-            margin-top: 20px;
-        }
-        footer {
-            margin-top: 20px;
-            padding: 10px 0;
-            background-color: #f5f5f5;
-            border-top: 1px solid #ddd;
-        }
-        footer p {
-            margin: 5px 0;
-        }
-        footer a {
-            color: #2196F3; /* Changed to blue */
-            text-decoration: none;
-        }
-        footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Internet Speed Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      max-width: 600px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .progress-bar-container {
+      margin: 20px 0;
+    }
+    .progress-bar {
+      background-color: #e0e0e0;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 20px;
+      width: 100%;
+    }
+    .progress {
+      background-color: #2196F3;
+      height: 100%;
+      width: 0%;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #2196F3;
+      color: white;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #1976D2;
+    }
+    #results {
+      margin-top: 20px;
+    }
+    footer {
+      margin-top: 20px;
+      padding: 10px 0;
+      background-color: #f5f5f5;
+      border-top: 1px solid #ddd;
+    }
+    footer p {
+      margin: 5px 0;
+    }
+    footer a {
+      color: #2196F3;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <h1>Internet Speed Test</h1>
-    <div class="container">
-        <button onclick="testDownloadSpeed()">Test Download Speed</button>
-        <div class="progress-bar-container">
-            <div class="progress-bar">
-                <div id="download-progress" class="progress"></div>
-            </div>
-        </div>
-        <button onclick="testUploadSpeed()">Test Upload Speed</button>
-        <div class="progress-bar-container">
-            <div class="progress-bar">
-                <div id="upload-progress" class="progress"></div>
-            </div>
-        </div>
-        <button onclick="testPingRate()">Test Ping Rate</button>
-        <div class="progress-bar-container">
-            <div class="progress-bar">
-                <div id="ping-progress" class="progress"></div>
-            </div>
-        </div>
-        <button onclick="testJitter()">Test Jitter</button>
-        <div class="progress-bar-container">
-            <div class="progress-bar">
-                <div id="jitter-progress" class="progress"></div>
-            </div>
-        </div>
-        <button onclick="testAll()">Test All</button>
-        <div id="results"></div>
+  <h1>Internet Speed Test</h1>
+  <div class="container">
+    <button id="downloadBtn">Test Download Speed</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar">
+        <div id="download-progress" class="progress"></div>
+      </div>
     </div>
-    <footer>
-        <p>Written by Nick Hernandez</p>
-        <p>Source code available on <a href="https://github.com/djlactose/speedtest" target="_blank">GitHub</a></p>
-        <p>Licensed under the MIT License</p>
-    </footer>
-    <script>
-        let resultsDiv = document.querySelector("#results");
+    <button id="uploadBtn">Test Upload Speed</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar">
+        <div id="upload-progress" class="progress"></div>
+      </div>
+    </div>
+    <button id="pingBtn">Test Ping Rate</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar">
+        <div id="ping-progress" class="progress"></div>
+      </div>
+    </div>
+    <button id="jitterBtn">Test Jitter</button>
+    <div class="progress-bar-container">
+      <div class="progress-bar">
+        <div id="jitter-progress" class="progress"></div>
+      </div>
+    </div>
+    <button id="allBtn">Test All</button>
+    <div id="results"></div>
+  </div>
+  <footer>
+    <p>Written by Nick Hernandez</p>
+    <p>Source code available on <a href="https://github.com/djlactose/speedtest" target="_blank">GitHub</a></p>
+    <p>Licensed under the MIT License</p>
+  </footer>
+  <script>
+    const resultsDiv = document.getElementById("results");
+    const downloadProgress = document.getElementById("download-progress");
+    const uploadProgress = document.getElementById("upload-progress");
+    const pingProgress = document.getElementById("ping-progress");
+    const jitterProgress = document.getElementById("jitter-progress");
 
-        function updateProgressBar(progressBarId, percentage) {
-            let progressBar = document.querySelector("#" + progressBarId);
-            progressBar.style.width = percentage + "%";
-        }
+    function updateProgressBar(progressBar, percentage) {
+      progressBar.style.width = percentage + "%";
+    }
 
-        function resetProgressBars() {
-            updateProgressBar("download-progress", 0);
-            updateProgressBar("upload-progress", 0);
-            updateProgressBar("ping-progress", 0);
-            updateProgressBar("jitter-progress", 0);
-        }
+    function resetProgressBars() {
+      updateProgressBar(downloadProgress, 0);
+      updateProgressBar(uploadProgress, 0);
+      updateProgressBar(pingProgress, 0);
+      updateProgressBar(jitterProgress, 0);
+    }
 
-        async function testDownloadSpeed() {
-            updateProgressBar("download-progress", 0);
-            let startTime = new Date().getTime();
-            let xhr = new XMLHttpRequest();
-            let lastPercentage = 0;
-            let totalBytes = 100 * 1024 * 1024; // 100 MB in bytes
-            let interval;
+    async function testDownloadSpeed() {
+      updateProgressBar(downloadProgress, 0);
+      const startTime = new Date().getTime();
+      const response = await fetch('/download');
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      const reader = response.body.getReader();
+      const totalBytes = 100 * 1024 * 1024;
+      let loaded = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        loaded += value.length;
+        let percentage = Math.min((loaded / totalBytes) * 100, 100);
+        updateProgressBar(downloadProgress, percentage);
+      }
+      const endTime = new Date().getTime();
+      const duration = (endTime - startTime) / 1000;
+      const speedMbps = ((totalBytes / duration) / (1024 * 1024)).toFixed(2);
+      updateProgressBar(downloadProgress, 100);
+      return speedMbps;
+    }
 
-            function startProgressTracker() {
-                let initialProgress = 0;
-                updateProgressBar("download-progress", initialProgress);
-                interval = setInterval(function () {
-                    if (initialProgress < 95) {
-                        initialProgress += 1;
-                        updateProgressBar("download-progress", initialProgress);
-                    }
-                }, 500);
-            }
+    async function testUploadSpeed() {
+      const startTime = new Date().getTime();
+      const fileSize = 99 * 1024 * 1024;
+      const blob = new Blob([new ArrayBuffer(fileSize)], { type: 'application/octet-stream' });
+      const formData = new FormData();
+      formData.append("file", blob);
 
-            function stopProgressTracker() {
-                clearInterval(interval);
-            }
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      const endTime = new Date().getTime();
+      const duration = (endTime - startTime) / 1000;
+      const speedMbps = ((fileSize / duration) / (1024 * 1024)).toFixed(2);
+      updateProgressBar(uploadProgress, 100);
+      return speedMbps;
+    }
 
-            return new Promise((resolve, reject) => {
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        let endTime = new Date().getTime();
-                        let duration = (endTime - startTime) / 1000;
-                        let speed = totalBytes / duration;
-                        let downloadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
-                        stopProgressTracker();
-                        updateProgressBar("download-progress", 100);
-                        resolve(downloadSpeedMbps);
-                    }
-                };
+    async function testPingRate() {
+      updateProgressBar(pingProgress, 0);
+      const startTime = new Date().getTime();
+      const response = await fetch('/ping');
+      if (!response.ok) {
+        throw new Error('Ping failed');
+      }
+      const endTime = new Date().getTime();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+      updateProgressBar(pingProgress, 100);
+      return duration;
+    }
 
-                xhr.onprogress = function(event) {
-                    if (event.lengthComputable) {
-                        let percentage = Math.floor((event.loaded / event.total) * 100);
-                        if (percentage > lastPercentage) {
-                            lastPercentage = percentage;
-                        }
-                    }
-                };
+    async function testJitter() {
+      updateProgressBar(jitterProgress, 0);
+      const response = await fetch('/jitter');
+      if (!response.ok) {
+        throw new Error('Jitter test failed');
+      }
+      const data = await response.json();
+      updateProgressBar(jitterProgress, 100);
+      return data.jitter.toFixed(2);
+    }
 
-                xhr.open("GET", "/download", true);
-                xhr.send();
-                startProgressTracker();
-            });
-        }
+    async function testAll() {
+      resetProgressBars();
+      resultsDiv.innerHTML = "Testing all...<br>";
 
-        async function testUploadSpeed() {
-            let startTime = new Date().getTime();
-            let fileSize = 99 * 1024 * 1024; // 100 MB in bytes
-            let blob = new Blob([new ArrayBuffer(fileSize)], {type: 'application/octet-stream'});
-            let formData = new FormData();
-            formData.append("file", blob);
+      try {
+        const downloadSpeed = await testDownloadSpeed();
+        const uploadSpeed = await testUploadSpeed();
+        const pingRate = await testPingRate();
+        const jitter = await testJitter();
 
-            return new Promise((resolve, reject) => {
-                let xhr = new XMLHttpRequest();
-                let maxProgress = 0;
+        resultsDiv.innerHTML = `
+          Summary of all tests:<br>
+          Your download speed is: ${downloadSpeed} Mbps<br>
+          Your upload speed is: ${uploadSpeed} Mbps<br>
+          Your ping rate is: ${pingRate} seconds<br>
+          Your jitter is: ${jitter} ms
+        `;
+      } catch (error) {
+        resultsDiv.innerHTML = `Error during tests: ${error.message}`;
+      }
+    }
 
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        let endTime = new Date().getTime();
-                        let duration = (endTime - startTime) / 1000;
-                        let speed = fileSize / duration;
-                        let uploadSpeedMbps = (speed / (1024 * 1024)).toFixed(2);
-                        resolve(uploadSpeedMbps);
-                    }
-                };
-                xhr.upload.onprogress = function(event) {
-                    if (event.lengthComputable) {
-                        let percentage = (event.loaded / event.total) * 100;
-                        maxProgress = Math.max(maxProgress, percentage);
-                        updateProgressBar("upload-progress", maxProgress);
-                    }
-                };
+    document.getElementById("downloadBtn").addEventListener("click", async () => {
+      resultsDiv.innerHTML = "Running Download Speed Test...";
+      try {
+        const speed = await testDownloadSpeed();
+        resultsDiv.innerHTML = `Your download speed is: ${speed} Mbps`;
+      } catch (error) {
+        resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    });
 
-                xhr.open("POST", "/upload", true);
-                xhr.send(formData);
-            });
-        }
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      resultsDiv.innerHTML = "Running Upload Speed Test...";
+      try {
+        const speed = await testUploadSpeed();
+        resultsDiv.innerHTML = `Your upload speed is: ${speed} Mbps`;
+      } catch (error) {
+        resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    });
 
-        async function testPingRate() {
-            updateProgressBar("ping-progress", 0);
-            let startTime = new Date().getTime();
-            let xhr = new XMLHttpRequest();
+    document.getElementById("pingBtn").addEventListener("click", async () => {
+      resultsDiv.innerHTML = "Running Ping Test...";
+      try {
+        const ping = await testPingRate();
+        resultsDiv.innerHTML = `Your ping rate is: ${ping} seconds`;
+      } catch (error) {
+        resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    });
 
-            return new Promise((resolve, reject) => {
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        let endTime = new Date().getTime();
-                        let duration = (endTime - startTime) / 1000;
-                        let pingRate = duration.toFixed(2);
-                        resolve(pingRate);
-                    }
-                };
-                xhr.open("GET", "/ping", true);
-                xhr.send();
-            });
-        }
+    document.getElementById("jitterBtn").addEventListener("click", async () => {
+      resultsDiv.innerHTML = "Running Jitter Test...";
+      try {
+        const jitter = await testJitter();
+        resultsDiv.innerHTML = `Your jitter is: ${jitter} ms`;
+      } catch (error) {
+        resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    });
 
-        async function testJitter() {
-            updateProgressBar("jitter-progress", 0);
-            let startTime = new Date().getTime();
-            let xhr = new XMLHttpRequest();
-            xhr.withCredentials = true;
-
-            return new Promise((resolve, reject) => {
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        let endTime = new Date().getTime();
-                        let duration = (endTime - startTime) / 1000;
-                        let jitter = JSON.parse(xhr.responseText).jitter.toFixed(2);
-                        resolve(jitter);
-                    }
-                };
-                xhr.open("GET", "/jitter", true);
-                xhr.send();
-            });
-        }
-
-        async function testAll() {
-            resetProgressBars();
-            resultsDiv.innerHTML = "Testing all...<br>";
-
-            let downloadSpeed = await testDownloadSpeed();
-            let uploadSpeed = await testUploadSpeed();
-            let pingRate = await testPingRate();
-            updateProgressBar("ping-progress", 100);
-            let jitter = await testJitter();
-            updateProgressBar("jitter-progress", 100);
-
-            resultsDiv.innerHTML = "Summary of all tests:<br>";
-            resultsDiv.innerHTML += "Your download speed is: " + downloadSpeed + " Mbps<br>";
-            resultsDiv.innerHTML += "Your upload speed is: " + uploadSpeed + " Mbps<br>";
-            resultsDiv.innerHTML += "Your ping rate to " + window.location.hostname + " is: " + pingRate + " seconds<br>";
-            resultsDiv.innerHTML += "Your jitter is: " + jitter + " ms";
-        }
-
-        document.querySelector("button[onclick='testDownloadSpeed()']").addEventListener("click", async function() {
-            resultsDiv.innerHTML = "Running Download Speed Test...";
-            let downloadSpeed = await testDownloadSpeed();
-            resultsDiv.innerHTML = "Your download speed is: " + downloadSpeed + " Mbps";
-            updateProgressBar("download-progress", 100);
-        });
-
-        document.querySelector("button[onclick='testUploadSpeed()']").addEventListener("click", async function() {
-            resultsDiv.innerHTML = "Running Upload Speed Test...";
-            let uploadSpeed = await testUploadSpeed();
-            resultsDiv.innerHTML = "Your upload speed is: " + uploadSpeed + " Mbps";
-            updateProgressBar("upload-progress", 100);
-        });
-
-        document.querySelector("button[onclick='testPingRate()']").addEventListener("click", async function() {
-            resultsDiv.innerHTML = "Running Ping Test...";
-            let pingRate = await testPingRate();
-            resultsDiv.innerHTML = "Your ping rate to " + window.location.hostname + " is: " + pingRate + " seconds";
-            updateProgressBar("ping-progress", 100);
-        });
-
-        document.querySelector("button[onclick='testJitter()']").addEventListener("click", async function() {
-            resultsDiv.innerHTML = "Running Jitter Test...";
-            let jitter = await testJitter();
-            resultsDiv.innerHTML = "Your jitter is: " + jitter + " ms";
-            updateProgressBar("jitter-progress", 100);
-        });
-
-        document.querySelector("button[onclick='testAll()']").addEventListener("click", testAll);
-    </script>
+    document.getElementById("allBtn").addEventListener("click", testAll);
+  </script>
 </body>
 </html>
