@@ -5,263 +5,802 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Internet Speed Test</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-      text-align: center;
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    h1 {
-      margin-top: 20px;
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background-color: #0f1923;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .container {
-      width: 80%;
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      max-width: 720px;
       margin: 0 auto;
-      max-width: 600px;
-      padding: 20px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-    .progress-bar-container {
-      margin: 20px 0;
-    }
-    .progress-bar {
-      background-color: #e0e0e0;
-      border: 1px solid #bbb;
-      border-radius: 10px;
-      overflow: hidden;
-      height: 20px;
       width: 100%;
     }
-    .progress {
-      background-color: #2196F3;
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Hero button */
+    .hero-btn {
+      background: linear-gradient(135deg, #2979ff, #1565c0);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 140px;
+      height: 140px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 30px rgba(41, 121, 255, 0.3);
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .hero-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(41, 121, 255, 0.5);
+    }
+
+    .hero-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hero-btn:focus-visible {
+      outline: 3px solid #64b5f6;
+      outline-offset: 4px;
+    }
+
+    .hero-btn .spinner {
+      display: none;
+    }
+
+    .hero-btn.testing .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 4px;
+    }
+
+    .hero-btn.testing .btn-label {
+      font-size: 0.85rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Cancel button */
+    .cancel-btn {
+      background: transparent;
+      color: #ef5350;
+      border: 1px solid #ef5350;
+      border-radius: 6px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+      transition: background 0.2s;
+      display: none;
+    }
+
+    .cancel-btn.visible {
+      display: inline-block;
+    }
+
+    .cancel-btn:hover {
+      background: rgba(239, 83, 80, 0.15);
+    }
+
+    /* Metric cards grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: #1a2733;
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      border: 1px solid #263843;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      position: relative;
+    }
+
+    .metric-card.active {
+      border-color: #2979ff;
+      box-shadow: 0 0 15px rgba(41, 121, 255, 0.2);
+    }
+
+    .metric-card.error {
+      border-color: #ef5350;
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .metric-icon {
+      font-size: 1.1rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #90a4ae;
+    }
+
+    .metric-desc {
+      font-size: 0.65rem;
+      color: #607d8b;
+      margin-bottom: 0.8rem;
+    }
+
+    .metric-value {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      min-height: 2.6rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+
+    .metric-value .number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-value .unit {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: #90a4ae;
+    }
+
+    .metric-value .placeholder {
+      color: #37474f;
+      font-size: 2rem;
+    }
+
+    .metric-value .card-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #263843;
+      border-top-color: #2979ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Color coding for results */
+    .result-excellent .number { color: #4caf50; }
+    .result-good .number { color: #8bc34a; }
+    .result-fair .number { color: #ffc107; }
+    .result-poor .number { color: #ef5350; }
+
+    .metric-quality {
+      font-size: 0.7rem;
+      font-weight: 500;
+      margin-top: 0.3rem;
+      min-height: 1rem;
+    }
+
+    .result-excellent .metric-quality { color: #4caf50; }
+    .result-good .metric-quality { color: #8bc34a; }
+    .result-fair .metric-quality { color: #ffc107; }
+    .result-poor .metric-quality { color: #ef5350; }
+
+    /* Progress bar */
+    .progress-bar {
+      background: #263843;
+      border-radius: 4px;
+      height: 4px;
+      width: 100%;
+      margin-top: 0.8rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: #2979ff;
       height: 100%;
       width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 4px;
     }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
+
+    /* Individual test buttons */
+    .individual-tests {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .test-btn {
+      background: #1a2733;
+      color: #90a4ae;
+      border: 1px solid #263843;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
       cursor: pointer;
-      background-color: #2196F3;
-      color: white;
-      transition: background-color 0.3s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
-    button:hover {
-      background-color: #1976D2;
+
+    .test-btn:hover:not(:disabled) {
+      background: #263843;
+      color: #e0e0e0;
+      border-color: #37474f;
     }
-    #results {
-      margin-top: 20px;
+
+    .test-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
+
+    .test-btn:focus-visible {
+      outline: 2px solid #64b5f6;
+      outline-offset: 2px;
+    }
+
+    /* Error message */
+    .error-msg {
+      background: rgba(239, 83, 80, 0.1);
+      border: 1px solid rgba(239, 83, 80, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      color: #ef9a9a;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+      width: 100%;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    .error-msg button {
+      background: transparent;
+      color: #ef5350;
+      border: 1px solid #ef5350;
+      border-radius: 4px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .error-msg button:hover {
+      background: rgba(239, 83, 80, 0.15);
+    }
+
+    /* Status text */
+    .status-text {
+      font-size: 0.85rem;
+      color: #607d8b;
+      margin-bottom: 1rem;
+      min-height: 1.2rem;
+      text-align: center;
+    }
+
+    /* Footer */
     footer {
-      margin-top: 20px;
-      padding: 10px 0;
-      background-color: #f5f5f5;
-      border-top: 1px solid #ddd;
+      text-align: center;
+      padding: 1rem;
+      border-top: 1px solid #1a2733;
+      font-size: 0.75rem;
+      color: #607d8b;
     }
-    footer p {
-      margin: 5px 0;
-    }
+
     footer a {
-      color: #2196F3;
+      color: #2979ff;
       text-decoration: none;
     }
+
     footer a:hover {
       text-decoration: underline;
+    }
+
+    footer p {
+      margin: 0.2rem 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-btn {
+        width: 120px;
+        height: 120px;
+        font-size: 1rem;
+      }
+
+      .metric-value {
+        font-size: 2rem;
+      }
+
+      .individual-tests {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .test-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Internet Speed Test</h1>
-  <div class="container">
-    <button id="downloadBtn">Test Download Speed</button>
-    <div class="progress-bar-container">
-      <div class="progress-bar">
-        <div id="download-progress" class="progress"></div>
+  <main>
+    <h1>Speed Test</h1>
+
+    <button class="hero-btn" id="allBtn" aria-label="Run all speed tests">
+      <div class="spinner"></div>
+      <div class="btn-label">Test All</div>
+    </button>
+
+    <button class="cancel-btn" id="cancelBtn">Cancel</button>
+
+    <div class="status-text" id="statusText" aria-live="polite"></div>
+
+    <div class="error-msg" id="errorMsg" role="alert">
+      <div id="errorText"></div>
+      <button id="retryBtn">Try Again</button>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card" id="downloadCard">
+        <div class="metric-header">
+          <span class="metric-icon" aria-hidden="true">&#x2B07;</span>
+          <span class="metric-label">Download</span>
+        </div>
+        <div class="metric-desc">How fast you receive data</div>
+        <div class="metric-value" id="downloadValue" aria-label="Download speed">
+          <span class="placeholder">&mdash;</span>
+        </div>
+        <div class="metric-quality" id="downloadQuality"></div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="downloadBar">
+          <div class="progress-fill" id="downloadProgress"></div>
+        </div>
+      </div>
+
+      <div class="metric-card" id="uploadCard">
+        <div class="metric-header">
+          <span class="metric-icon" aria-hidden="true">&#x2B06;</span>
+          <span class="metric-label">Upload</span>
+        </div>
+        <div class="metric-desc">How fast you send data</div>
+        <div class="metric-value" id="uploadValue" aria-label="Upload speed">
+          <span class="placeholder">&mdash;</span>
+        </div>
+        <div class="metric-quality" id="uploadQuality"></div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="uploadBar">
+          <div class="progress-fill" id="uploadProgress"></div>
+        </div>
+      </div>
+
+      <div class="metric-card" id="pingCard">
+        <div class="metric-header">
+          <span class="metric-icon" aria-hidden="true">&#x1F4E1;</span>
+          <span class="metric-label">Ping</span>
+        </div>
+        <div class="metric-desc">Delay to the server</div>
+        <div class="metric-value" id="pingValue" aria-label="Ping latency">
+          <span class="placeholder">&mdash;</span>
+        </div>
+        <div class="metric-quality" id="pingQuality"></div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="pingBar">
+          <div class="progress-fill" id="pingProgress"></div>
+        </div>
+      </div>
+
+      <div class="metric-card" id="jitterCard">
+        <div class="metric-header">
+          <span class="metric-icon" aria-hidden="true">&#x2248;</span>
+          <span class="metric-label">Jitter</span>
+        </div>
+        <div class="metric-desc">Variation in response time</div>
+        <div class="metric-value" id="jitterValue" aria-label="Jitter">
+          <span class="placeholder">&mdash;</span>
+        </div>
+        <div class="metric-quality" id="jitterQuality"></div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="jitterBar">
+          <div class="progress-fill" id="jitterProgress"></div>
+        </div>
       </div>
     </div>
-    <button id="uploadBtn">Test Upload Speed</button>
-    <div class="progress-bar-container">
-      <div class="progress-bar">
-        <div id="upload-progress" class="progress"></div>
-      </div>
+
+    <div class="individual-tests">
+      <button class="test-btn" id="downloadBtn">Download Only</button>
+      <button class="test-btn" id="uploadBtn">Upload Only</button>
+      <button class="test-btn" id="pingBtn">Ping Only</button>
+      <button class="test-btn" id="jitterBtn">Jitter Only</button>
     </div>
-    <button id="pingBtn">Test Ping Rate</button>
-    <div class="progress-bar-container">
-      <div class="progress-bar">
-        <div id="ping-progress" class="progress"></div>
-      </div>
-    </div>
-    <button id="jitterBtn">Test Jitter</button>
-    <div class="progress-bar-container">
-      <div class="progress-bar">
-        <div id="jitter-progress" class="progress"></div>
-      </div>
-    </div>
-    <button id="allBtn">Test All</button>
-    <div id="results"></div>
-  </div>
+  </main>
+
   <footer>
     <p>Written by Nick Hernandez</p>
-    <p>Source code available on <a href="https://github.com/djlactose/speedtest" target="_blank">GitHub</a></p>
-    <p>Licensed under the MIT License</p>
+    <p>Source code on <a href="https://github.com/djlactose/speedtest" target="_blank" rel="noopener">GitHub</a> &middot; MIT License</p>
   </footer>
+
   <script>
-    const resultsDiv = document.getElementById("results");
-    const downloadProgress = document.getElementById("download-progress");
-    const uploadProgress = document.getElementById("upload-progress");
-    const pingProgress = document.getElementById("ping-progress");
-    const jitterProgress = document.getElementById("jitter-progress");
+    // DOM elements
+    const allBtn = document.getElementById('allBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const statusText = document.getElementById('statusText');
+    const errorMsg = document.getElementById('errorMsg');
+    const errorText = document.getElementById('errorText');
+    const retryBtn = document.getElementById('retryBtn');
+    const testBtns = document.querySelectorAll('.test-btn');
 
-    function updateProgressBar(progressBar, percentage) {
-      progressBar.style.width = percentage + "%";
-    }
-
-    function resetProgressBars() {
-      updateProgressBar(downloadProgress, 0);
-      updateProgressBar(uploadProgress, 0);
-      updateProgressBar(pingProgress, 0);
-      updateProgressBar(jitterProgress, 0);
-    }
-
-    async function testDownloadSpeed() {
-      updateProgressBar(downloadProgress, 0);
-      const startTime = new Date().getTime();
-      const response = await fetch('/download');
-      if (!response.ok) {
-        throw new Error('Download failed');
+    const cards = {
+      download: {
+        card: document.getElementById('downloadCard'),
+        value: document.getElementById('downloadValue'),
+        quality: document.getElementById('downloadQuality'),
+        progress: document.getElementById('downloadProgress'),
+        bar: document.getElementById('downloadBar')
+      },
+      upload: {
+        card: document.getElementById('uploadCard'),
+        value: document.getElementById('uploadValue'),
+        quality: document.getElementById('uploadQuality'),
+        progress: document.getElementById('uploadProgress'),
+        bar: document.getElementById('uploadBar')
+      },
+      ping: {
+        card: document.getElementById('pingCard'),
+        value: document.getElementById('pingValue'),
+        quality: document.getElementById('pingQuality'),
+        progress: document.getElementById('pingProgress'),
+        bar: document.getElementById('pingBar')
+      },
+      jitter: {
+        card: document.getElementById('jitterCard'),
+        value: document.getElementById('jitterValue'),
+        quality: document.getElementById('jitterQuality'),
+        progress: document.getElementById('jitterProgress'),
+        bar: document.getElementById('jitterBar')
       }
+    };
+
+    let abortController = null;
+    let isTesting = false;
+    let lastTestFn = null;
+
+    // Quality thresholds
+    function getSpeedQuality(mbps) {
+      if (mbps >= 100) return { cls: 'result-excellent', label: 'Excellent' };
+      if (mbps >= 50) return { cls: 'result-good', label: 'Good' };
+      if (mbps >= 25) return { cls: 'result-fair', label: 'Fair' };
+      return { cls: 'result-poor', label: 'Poor' };
+    }
+
+    function getPingQuality(ms) {
+      if (ms <= 20) return { cls: 'result-excellent', label: 'Excellent' };
+      if (ms <= 50) return { cls: 'result-good', label: 'Good' };
+      if (ms <= 100) return { cls: 'result-fair', label: 'Fair' };
+      return { cls: 'result-poor', label: 'Poor' };
+    }
+
+    function getJitterQuality(ms) {
+      if (ms <= 5) return { cls: 'result-excellent', label: 'Excellent' };
+      if (ms <= 15) return { cls: 'result-good', label: 'Good' };
+      if (ms <= 30) return { cls: 'result-fair', label: 'Fair' };
+      return { cls: 'result-poor', label: 'Poor' };
+    }
+
+    // UI helpers
+    function setButtonsDisabled(disabled) {
+      allBtn.disabled = disabled;
+      testBtns.forEach(b => b.disabled = disabled);
+    }
+
+    function setTesting(active, label) {
+      isTesting = active;
+      setButtonsDisabled(active);
+      cancelBtn.classList.toggle('visible', active);
+      allBtn.classList.toggle('testing', active);
+      if (active) {
+        allBtn.querySelector('.btn-label').textContent = label || 'Testing...';
+        abortController = new AbortController();
+      } else {
+        allBtn.querySelector('.btn-label').textContent = 'Test All';
+        abortController = null;
+      }
+    }
+
+    function showError(message) {
+      errorText.textContent = message;
+      errorMsg.classList.add('visible');
+    }
+
+    function hideError() {
+      errorMsg.classList.remove('visible');
+    }
+
+    function setStatus(msg) {
+      statusText.textContent = msg;
+    }
+
+    function setCardActive(key) {
+      Object.values(cards).forEach(c => c.card.classList.remove('active'));
+      if (key) cards[key].card.classList.add('active');
+    }
+
+    function setCardError(key) {
+      cards[key].card.classList.add('error');
+    }
+
+    function updateProgress(key, pct) {
+      const p = Math.min(Math.max(pct, 0), 100);
+      cards[key].progress.style.width = p + '%';
+      cards[key].bar.setAttribute('aria-valuenow', Math.round(p));
+    }
+
+    function showSpinner(key) {
+      cards[key].value.innerHTML = '<div class="card-spinner"></div>';
+    }
+
+    function showResult(key, number, unit, qualityFn) {
+      const q = qualityFn(parseFloat(number));
+      cards[key].card.className = 'metric-card ' + q.cls;
+      cards[key].value.innerHTML = '<span class="number">' + number + '</span><span class="unit">' + unit + '</span>';
+      cards[key].quality.textContent = q.label;
+    }
+
+    function resetCard(key) {
+      cards[key].card.className = 'metric-card';
+      cards[key].value.innerHTML = '<span class="placeholder">&mdash;</span>';
+      cards[key].quality.textContent = '';
+      updateProgress(key, 0);
+    }
+
+    function resetAll() {
+      ['download', 'upload', 'ping', 'jitter'].forEach(resetCard);
+      hideError();
+      setStatus('');
+    }
+
+    // Test functions
+    async function testDownload(signal) {
+      setCardActive('download');
+      showSpinner('download');
+      setStatus('Testing download speed...');
+      updateProgress('download', 0);
+
+      const startTime = performance.now();
+      const response = await fetch('/download', { signal });
+      if (!response.ok) throw new Error('Download failed');
+
       const reader = response.body.getReader();
       const totalBytes = 100 * 1024 * 1024;
       let loaded = 0;
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         loaded += value.length;
-        let percentage = Math.min((loaded / totalBytes) * 100, 100);
-        updateProgressBar(downloadProgress, percentage);
+        updateProgress('download', (loaded / totalBytes) * 100);
       }
-      const endTime = new Date().getTime();
-      const duration = (endTime - startTime) / 1000;
-      const speedMbps = ((totalBytes / duration) / (1024 * 1024)).toFixed(2);
-      updateProgressBar(downloadProgress, 100);
-      return speedMbps;
+
+      const duration = (performance.now() - startTime) / 1000;
+      const mbps = ((loaded / duration) / (1024 * 1024)).toFixed(1);
+      updateProgress('download', 100);
+      showResult('download', mbps, 'Mbps', getSpeedQuality);
+      return mbps;
     }
 
-    async function testUploadSpeed() {
-      const startTime = new Date().getTime();
+    async function testUpload(signal) {
+      setCardActive('upload');
+      showSpinner('upload');
+      setStatus('Testing upload speed...');
+      updateProgress('upload', 0);
+
       const fileSize = 99 * 1024 * 1024;
       const blob = new Blob([new ArrayBuffer(fileSize)], { type: 'application/octet-stream' });
       const formData = new FormData();
-      formData.append("file", blob);
+      formData.append('file', blob, 'speedtest.bin');
 
-      const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        if (signal) {
+          signal.addEventListener('abort', () => xhr.abort());
+        }
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            updateProgress('upload', (e.loaded / e.total) * 100);
+          }
+        });
+
+        const startTime = performance.now();
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const duration = (performance.now() - startTime) / 1000;
+            const mbps = ((fileSize / duration) / (1024 * 1024)).toFixed(1);
+            updateProgress('upload', 100);
+            showResult('upload', mbps, 'Mbps', getSpeedQuality);
+            resolve(mbps);
+          } else {
+            reject(new Error('Upload failed'));
+          }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+        xhr.addEventListener('abort', () => reject(new Error('Cancelled')));
+
+        xhr.open('POST', '/upload');
+        xhr.send(formData);
       });
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      const endTime = new Date().getTime();
-      const duration = (endTime - startTime) / 1000;
-      const speedMbps = ((fileSize / duration) / (1024 * 1024)).toFixed(2);
-      updateProgressBar(uploadProgress, 100);
-      return speedMbps;
     }
 
-    async function testPingRate() {
-      updateProgressBar(pingProgress, 0);
-      const startTime = new Date().getTime();
-      const response = await fetch('/ping');
-      if (!response.ok) {
-        throw new Error('Ping failed');
-      }
-      const endTime = new Date().getTime();
-      const duration = ((endTime - startTime) / 1000).toFixed(2);
-      updateProgressBar(pingProgress, 100);
-      return duration;
+    async function testPing(signal) {
+      setCardActive('ping');
+      showSpinner('ping');
+      setStatus('Testing ping...');
+      updateProgress('ping', 0);
+
+      const startTime = performance.now();
+      const response = await fetch('/ping', { signal });
+      if (!response.ok) throw new Error('Ping failed');
+      await response.json();
+      const ms = (performance.now() - startTime).toFixed(1);
+
+      updateProgress('ping', 100);
+      showResult('ping', ms, 'ms', getPingQuality);
+      return ms;
     }
 
-    async function testJitter() {
-      updateProgressBar(jitterProgress, 0);
-      const response = await fetch('/jitter');
-      if (!response.ok) {
-        throw new Error('Jitter test failed');
+    async function testJitter(signal) {
+      setCardActive('jitter');
+      showSpinner('jitter');
+      setStatus('Testing jitter...');
+      updateProgress('jitter', 0);
+
+      // Take multiple ping samples and compute variance
+      const samples = [];
+      const count = 5;
+      for (let i = 0; i < count; i++) {
+        const start = performance.now();
+        const response = await fetch('/ping', { signal });
+        if (!response.ok) throw new Error('Jitter test failed');
+        await response.json();
+        samples.push(performance.now() - start);
+        updateProgress('jitter', ((i + 1) / count) * 100);
       }
-      const data = await response.json();
-      updateProgressBar(jitterProgress, 100);
-      return data.jitter.toFixed(2);
+
+      // Jitter = average absolute difference between consecutive samples
+      let totalDiff = 0;
+      for (let i = 1; i < samples.length; i++) {
+        totalDiff += Math.abs(samples[i] - samples[i - 1]);
+      }
+      const jitter = (totalDiff / (samples.length - 1)).toFixed(1);
+
+      showResult('jitter', jitter, 'ms', getJitterQuality);
+      return jitter;
     }
 
-    async function testAll() {
-      resetProgressBars();
-      resultsDiv.innerHTML = "Testing all...<br>";
+    // Run a single test with guards
+    async function runSingleTest(key, testFn) {
+      if (isTesting) return;
+      hideError();
+      lastTestFn = () => runSingleTest(key, testFn);
+      setTesting(true, 'Testing...');
+      resetCard(key);
 
       try {
-        const downloadSpeed = await testDownloadSpeed();
-        const uploadSpeed = await testUploadSpeed();
-        const pingRate = await testPingRate();
-        const jitter = await testJitter();
-
-        resultsDiv.innerHTML = `
-          Summary of all tests:<br>
-          Your download speed is: ${downloadSpeed} Mbps<br>
-          Your upload speed is: ${uploadSpeed} Mbps<br>
-          Your ping rate is: ${pingRate} seconds<br>
-          Your jitter is: ${jitter} ms
-        `;
-      } catch (error) {
-        resultsDiv.innerHTML = `Error during tests: ${error.message}`;
+        await testFn(abortController.signal);
+      } catch (err) {
+        if (err.name === 'AbortError' || err.message === 'Cancelled') {
+          setStatus('Test cancelled.');
+          resetCard(key);
+        } else {
+          setCardError(key);
+          showError('Test failed. Check your connection and try again.');
+        }
+      } finally {
+        setCardActive(null);
+        setTesting(false);
+        if (!errorMsg.classList.contains('visible')) setStatus('');
       }
     }
 
-    document.getElementById("downloadBtn").addEventListener("click", async () => {
-      resultsDiv.innerHTML = "Running Download Speed Test...";
-      try {
-        const speed = await testDownloadSpeed();
-        resultsDiv.innerHTML = `Your download speed is: ${speed} Mbps`;
-      } catch (error) {
-        resultsDiv.innerHTML = `Error: ${error.message}`;
+    // Run all tests
+    async function runAllTests() {
+      if (isTesting) return;
+      if (!navigator.onLine) {
+        showError('You appear to be offline. Check your connection and try again.');
+        return;
       }
+
+      hideError();
+      resetAll();
+      lastTestFn = runAllTests;
+      setTesting(true, 'Testing...');
+
+      const tests = [
+        ['download', testDownload],
+        ['upload', testUpload],
+        ['ping', testPing],
+        ['jitter', testJitter]
+      ];
+
+      try {
+        for (const [key, fn] of tests) {
+          await fn(abortController.signal);
+        }
+        setStatus('All tests complete.');
+      } catch (err) {
+        if (err.name === 'AbortError' || err.message === 'Cancelled') {
+          setStatus('Tests cancelled.');
+        } else {
+          showError('A test failed. Check your connection and try again.');
+        }
+      } finally {
+        setCardActive(null);
+        setTesting(false);
+      }
+    }
+
+    // Event listeners
+    allBtn.addEventListener('click', runAllTests);
+
+    cancelBtn.addEventListener('click', () => {
+      if (abortController) abortController.abort();
     });
 
-    document.getElementById("uploadBtn").addEventListener("click", async () => {
-      resultsDiv.innerHTML = "Running Upload Speed Test...";
-      try {
-        const speed = await testUploadSpeed();
-        resultsDiv.innerHTML = `Your upload speed is: ${speed} Mbps`;
-      } catch (error) {
-        resultsDiv.innerHTML = `Error: ${error.message}`;
-      }
+    retryBtn.addEventListener('click', () => {
+      hideError();
+      if (lastTestFn) lastTestFn();
     });
 
-    document.getElementById("pingBtn").addEventListener("click", async () => {
-      resultsDiv.innerHTML = "Running Ping Test...";
-      try {
-        const ping = await testPingRate();
-        resultsDiv.innerHTML = `Your ping rate is: ${ping} seconds`;
-      } catch (error) {
-        resultsDiv.innerHTML = `Error: ${error.message}`;
-      }
-    });
-
-    document.getElementById("jitterBtn").addEventListener("click", async () => {
-      resultsDiv.innerHTML = "Running Jitter Test...";
-      try {
-        const jitter = await testJitter();
-        resultsDiv.innerHTML = `Your jitter is: ${jitter} ms`;
-      } catch (error) {
-        resultsDiv.innerHTML = `Error: ${error.message}`;
-      }
-    });
-
-    document.getElementById("allBtn").addEventListener("click", testAll);
+    document.getElementById('downloadBtn').addEventListener('click', () => runSingleTest('download', testDownload));
+    document.getElementById('uploadBtn').addEventListener('click', () => runSingleTest('upload', testUpload));
+    document.getElementById('pingBtn').addEventListener('click', () => runSingleTest('ping', testPing));
+    document.getElementById('jitterBtn').addEventListener('click', () => runSingleTest('jitter', testJitter));
   </script>
 </body>
 </html>
