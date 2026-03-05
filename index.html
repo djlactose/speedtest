@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Internet Speed Test</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='none' stroke='%232979ff' stroke-width='8'/><line x1='50' y1='50' x2='75' y2='30' stroke='%2364b5f6' stroke-width='6' stroke-linecap='round'/></svg>">
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -12,13 +12,26 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
+    ::selection {
+      background: rgba(41, 121, 255, 0.3);
+      color: #fff;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-      background-color: #0f1923;
+      background: radial-gradient(ellipse at 50% 0%, #162a3a 0%, #0f1923 60%);
       color: #e0e0e0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+
+    button {
+      touch-action: manipulation;
     }
 
     main {
@@ -26,18 +39,61 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
-      max-width: 720px;
+      padding: 2.5rem 1.5rem;
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+      max-width: 780px;
       margin: 0 auto;
       width: 100%;
     }
 
     h1 {
-      font-size: 1.6rem;
-      font-weight: 600;
-      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 0%, #90caf9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #607d8b;
       margin-bottom: 1.5rem;
       letter-spacing: 0.02em;
+    }
+
+    /* Per-metric accent colors */
+    .metric-card[data-metric="download"] { --accent: #00b4d8; }
+    .metric-card[data-metric="upload"] { --accent: #7c3aed; }
+    .metric-card[data-metric="ping"] { --accent: #f59e0b; }
+    .metric-card[data-metric="jitter"] { --accent: #ec4899; }
+
+    /* Keyframes */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 30px rgba(41, 121, 255, 0.3), 0 0 0 6px rgba(41, 121, 255, 0.08); }
+      50% { box-shadow: 0 0 50px rgba(41, 121, 255, 0.5), 0 0 80px rgba(41, 121, 255, 0.15), 0 0 0 6px rgba(41, 121, 255, 0.15); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
     }
 
     /* Hero button */
@@ -46,20 +102,62 @@
       color: #fff;
       border: none;
       border-radius: 50%;
-      width: 140px;
-      height: 140px;
-      font-size: 1.1rem;
-      font-weight: 600;
+      width: 160px;
+      height: 160px;
+      font-size: 1.15rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 30px rgba(41, 121, 255, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 40px rgba(41, 121, 255, 0.35), 0 0 0 6px rgba(41, 121, 255, 0.1);
       margin-bottom: 2rem;
       position: relative;
+      z-index: 1;
     }
 
-    .hero-btn:hover:not(:disabled) {
-      transform: scale(1.05);
-      box-shadow: 0 0 40px rgba(41, 121, 255, 0.5);
+    .hero-btn:not(:disabled):not(.testing) {
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    .hero-btn::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border-radius: 50%;
+      border: 2px solid rgba(41, 121, 255, 0.2);
+      transition: border-color 0.3s;
+    }
+
+    .hero-btn::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .hero-btn.testing::after {
+      opacity: 1;
+      border-top-color: #64b5f6;
+      border-right-color: #42a5f5;
+      animation: spin 1.2s linear infinite;
+    }
+
+    .hero-btn:hover:not(:disabled):not(.testing) {
+      transform: scale(1.07);
+      box-shadow: 0 0 60px rgba(41, 121, 255, 0.5), 0 0 0 6px rgba(41, 121, 255, 0.2);
+      animation: none;
+    }
+
+    .hero-btn:hover:not(:disabled)::before {
+      border-color: rgba(41, 121, 255, 0.5);
     }
 
     .hero-btn:disabled {
@@ -69,7 +167,7 @@
 
     .hero-btn:focus-visible {
       outline: 3px solid #64b5f6;
-      outline-offset: 4px;
+      outline-offset: 8px;
     }
 
     .hero-btn .spinner {
@@ -91,10 +189,6 @@
       font-size: 0.85rem;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     /* Cancel button */
     .cancel-btn {
       background: transparent;
@@ -104,13 +198,15 @@
       padding: 0.4rem 1.2rem;
       font-size: 0.85rem;
       cursor: pointer;
-      margin-bottom: 1.5rem;
-      transition: background 0.2s;
-      display: none;
+      margin-bottom: 1rem;
+      transition: background 0.2s, opacity 0.3s ease, visibility 0.3s;
+      opacity: 0;
+      visibility: hidden;
     }
 
     .cancel-btn.visible {
-      display: inline-block;
+      opacity: 1;
+      visibility: visible;
     }
 
     .cancel-btn:hover {
@@ -121,25 +217,65 @@
     .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 1.25rem;
       width: 100%;
-      margin-bottom: 1.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 2rem;
     }
 
     .metric-card {
-      background: #1a2733;
-      border-radius: 12px;
-      padding: 1.2rem;
+      background: linear-gradient(165deg, #1e2f3d 0%, #1a2733 100%);
+      border-radius: 16px;
+      padding: 1.4rem 1.2rem;
       text-align: center;
-      border: 1px solid #263843;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s ease;
       position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .metric-card:nth-child(1) { animation-delay: 0.1s; }
+    .metric-card:nth-child(2) { animation-delay: 0.2s; }
+    .metric-card:nth-child(3) { animation-delay: 0.3s; }
+    .metric-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent, #2979ff), transparent);
+      border-radius: 2px;
+      opacity: 0.4;
+      transition: opacity 0.3s, left 0.3s, right 0.3s;
+    }
+
+    .metric-card:hover::before,
+    .metric-card.active::before {
+      opacity: 1;
+      left: 10%;
+      right: 10%;
+    }
+
+    .metric-card:hover {
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
     }
 
     .metric-card.active {
-      border-color: #2979ff;
-      box-shadow: 0 0 15px rgba(41, 121, 255, 0.2);
+      border-color: var(--accent, #2979ff);
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(41, 121, 255, 0.12);
     }
+
+    .metric-card[data-metric="download"].active { box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 180, 216, 0.15); }
+    .metric-card[data-metric="upload"].active { box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(124, 58, 237, 0.15); }
+    .metric-card[data-metric="ping"].active { box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(245, 158, 11, 0.15); }
+    .metric-card[data-metric="jitter"].active { box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(236, 72, 153, 0.15); }
 
     .metric-card.error {
       border-color: #ef5350;
@@ -154,7 +290,8 @@
     }
 
     .metric-icon {
-      font-size: 1.1rem;
+      font-size: 1.3rem;
+      color: var(--accent, #2979ff);
     }
 
     .metric-label {
@@ -185,12 +322,16 @@
 
     .metric-value .number {
       font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     .metric-value .unit {
-      font-size: 0.85rem;
-      font-weight: 400;
-      color: #90a4ae;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #607d8b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .metric-value .placeholder {
@@ -202,9 +343,13 @@
       width: 24px;
       height: 24px;
       border: 3px solid #263843;
-      border-top-color: #2979ff;
+      border-top-color: var(--accent, #2979ff);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
+    }
+
+    .result-appear {
+      animation: countUp 0.4s ease forwards;
     }
 
     /* Color coding for results */
@@ -213,34 +358,99 @@
     .result-fair .number { color: #ffc107; }
     .result-poor .number { color: #ef5350; }
 
+    /* Quality badge pills */
     .metric-quality {
-      font-size: 0.7rem;
-      font-weight: 500;
-      margin-top: 0.3rem;
-      min-height: 1rem;
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 0.5rem;
+      padding: 0 0;
+      border-radius: 10px;
+      min-height: 1.2rem;
+      transition: all 0.3s ease;
     }
 
-    .result-excellent .metric-quality { color: #4caf50; }
-    .result-good .metric-quality { color: #8bc34a; }
-    .result-fair .metric-quality { color: #ffc107; }
-    .result-poor .metric-quality { color: #ef5350; }
+    .metric-quality:not(:empty) {
+      padding: 0.2rem 0.6rem;
+    }
+
+    .metric-quality:not(:empty)::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 0.3rem;
+      vertical-align: middle;
+      background: currentColor;
+    }
+
+    .result-excellent .metric-quality {
+      color: #4caf50;
+      background: rgba(76, 175, 80, 0.12);
+      border: 1px solid rgba(76, 175, 80, 0.25);
+    }
+    .result-good .metric-quality {
+      color: #8bc34a;
+      background: rgba(139, 195, 74, 0.12);
+      border: 1px solid rgba(139, 195, 74, 0.25);
+    }
+    .result-fair .metric-quality {
+      color: #ffc107;
+      background: rgba(255, 193, 7, 0.12);
+      border: 1px solid rgba(255, 193, 7, 0.25);
+    }
+    .result-poor .metric-quality {
+      color: #ef5350;
+      background: rgba(239, 83, 80, 0.12);
+      border: 1px solid rgba(239, 83, 80, 0.25);
+    }
 
     /* Progress bar */
     .progress-bar {
-      background: #263843;
-      border-radius: 4px;
-      height: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 3px;
+      height: 6px;
       width: 100%;
-      margin-top: 0.8rem;
+      margin-top: 1rem;
       overflow: hidden;
     }
 
     .progress-fill {
-      background: #2979ff;
+      background: var(--accent, #2979ff);
       height: 100%;
       width: 0%;
       transition: width 0.3s ease;
-      border-radius: 4px;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .metric-card.active .progress-fill {
+      background: linear-gradient(
+        90deg,
+        var(--accent, #2979ff) 0%,
+        color-mix(in srgb, var(--accent, #2979ff) 60%, white) 50%,
+        var(--accent, #2979ff) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s linear infinite;
+    }
+
+    /* Section label */
+    .individual-tests-section {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a6274;
+      margin-bottom: 0.5rem;
+      display: block;
     }
 
     /* Individual test buttons */
@@ -249,16 +459,17 @@
       gap: 0.5rem;
       flex-wrap: wrap;
       justify-content: center;
-      margin-bottom: 1.5rem;
     }
 
     .test-btn {
       background: #1a2733;
       color: #90a4ae;
       border: 1px solid #263843;
-      border-radius: 6px;
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
+      border-radius: 20px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
       cursor: pointer;
       transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
@@ -268,6 +479,11 @@
       color: #e0e0e0;
       border-color: #37474f;
     }
+
+    .test-btn[data-metric="download"]:hover:not(:disabled) { border-color: #00b4d8; color: #00b4d8; }
+    .test-btn[data-metric="upload"]:hover:not(:disabled) { border-color: #7c3aed; color: #7c3aed; }
+    .test-btn[data-metric="ping"]:hover:not(:disabled) { border-color: #f59e0b; color: #f59e0b; }
+    .test-btn[data-metric="jitter"]:hover:not(:disabled) { border-color: #ec4899; color: #ec4899; }
 
     .test-btn:disabled {
       opacity: 0.4;
@@ -334,17 +550,22 @@
       background: #1a2733;
       color: #90a4ae;
       border: 1px solid #263843;
-      border-radius: 6px;
+      border-radius: 20px;
       padding: 0.5rem 1.2rem;
       font-size: 0.8rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
       margin-bottom: 1.5rem;
-      display: none;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s, background 0.2s, color 0.2s;
     }
 
     .copy-btn.visible {
-      display: inline-block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
 
     .copy-btn:hover {
@@ -360,10 +581,10 @@
     /* Footer */
     footer {
       text-align: center;
-      padding: 1rem;
-      border-top: 1px solid #1a2733;
+      padding: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
       font-size: 0.75rem;
-      color: #607d8b;
+      color: #3a5060;
     }
 
     footer a {
@@ -379,20 +600,37 @@
       margin: 0.2rem 0;
     }
 
-    /* Responsive */
+    /* Responsive - Tablet */
+    @media (min-width: 481px) and (max-width: 768px) {
+      main {
+        max-width: 600px;
+        padding: 2rem 1.25rem;
+      }
+    }
+
+    /* Responsive - Mobile */
     @media (max-width: 480px) {
       .metrics-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
       }
 
       .hero-btn {
-        width: 120px;
-        height: 120px;
+        width: 140px;
+        height: 140px;
         font-size: 1rem;
       }
 
+      .metric-card {
+        padding: 1.2rem 1rem;
+      }
+
       .metric-value {
-        font-size: 2rem;
+        font-size: 2.2rem;
+      }
+
+      main {
+        padding: 1.5rem 1rem;
       }
 
       .individual-tests {
@@ -402,6 +640,32 @@
 
       .test-btn {
         width: 100%;
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        min-height: 44px;
+      }
+
+      .cancel-btn {
+        padding: 0.5rem 1.5rem;
+        min-height: 44px;
+      }
+
+      .copy-btn {
+        padding: 0.6rem 1.5rem;
+        min-height: 44px;
+        width: 100%;
+      }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .metric-card {
+        opacity: 1;
       }
     }
   </style>
@@ -409,6 +673,7 @@
 <body>
   <main>
     <h1>Speed Test</h1>
+    <p class="subtitle">Test your connection speed</p>
 
     <button class="hero-btn" id="allBtn" aria-label="Run all speed tests">
       <div class="spinner"></div>
@@ -425,7 +690,7 @@
     </div>
 
     <div class="metrics-grid">
-      <div class="metric-card" id="downloadCard">
+      <div class="metric-card" id="downloadCard" data-metric="download">
         <div class="metric-header">
           <span class="metric-icon" aria-hidden="true">&#x2B07;</span>
           <span class="metric-label">Download</span>
@@ -440,7 +705,7 @@
         </div>
       </div>
 
-      <div class="metric-card" id="uploadCard">
+      <div class="metric-card" id="uploadCard" data-metric="upload">
         <div class="metric-header">
           <span class="metric-icon" aria-hidden="true">&#x2B06;</span>
           <span class="metric-label">Upload</span>
@@ -455,7 +720,7 @@
         </div>
       </div>
 
-      <div class="metric-card" id="pingCard">
+      <div class="metric-card" id="pingCard" data-metric="ping">
         <div class="metric-header">
           <span class="metric-icon" aria-hidden="true">&#x1F4E1;</span>
           <span class="metric-label">Ping</span>
@@ -470,7 +735,7 @@
         </div>
       </div>
 
-      <div class="metric-card" id="jitterCard">
+      <div class="metric-card" id="jitterCard" data-metric="jitter">
         <div class="metric-header">
           <span class="metric-icon" aria-hidden="true">&#x2248;</span>
           <span class="metric-label">Jitter</span>
@@ -490,11 +755,14 @@
 
     <button class="copy-btn" id="copyBtn">Copy Results</button>
 
-    <div class="individual-tests">
-      <button class="test-btn" id="downloadBtn">Download Only</button>
-      <button class="test-btn" id="uploadBtn">Upload Only</button>
-      <button class="test-btn" id="pingBtn">Ping Only</button>
-      <button class="test-btn" id="jitterBtn">Jitter Only</button>
+    <div class="individual-tests-section">
+      <span class="section-label">Individual Tests</span>
+      <div class="individual-tests">
+        <button class="test-btn" id="downloadBtn" data-metric="download">Download Only</button>
+        <button class="test-btn" id="uploadBtn" data-metric="upload">Upload Only</button>
+        <button class="test-btn" id="pingBtn" data-metric="ping">Ping Only</button>
+        <button class="test-btn" id="jitterBtn" data-metric="jitter">Jitter Only</button>
+      </div>
     </div>
   </main>
 
@@ -629,13 +897,17 @@
     function showResult(key, number, unit, qualityFn) {
       const q = qualityFn(parseFloat(number));
       cards[key].card.className = 'metric-card ' + q.cls;
+      cards[key].card.setAttribute('data-metric', key);
       cards[key].value.innerHTML = '<span class="number">' + number + '</span><span class="unit">' + unit + '</span>';
+      cards[key].value.classList.add('result-appear');
       cards[key].quality.textContent = q.label;
     }
 
     function resetCard(key) {
       cards[key].card.className = 'metric-card';
+      cards[key].card.setAttribute('data-metric', key);
       cards[key].value.innerHTML = '<span class="placeholder">&mdash;</span>';
+      cards[key].value.classList.remove('result-appear');
       cards[key].quality.textContent = '';
       updateProgress(key, 0);
     }
