@@ -11,11 +11,12 @@ A self-hosted internet speed test application you can run in a Docker container.
 - **Test All** — Runs all four tests sequentially with a single click
 - Cancel any running test mid-flight
 - Dark dashboard UI with color-coded results (excellent/good/fair/poor)
+- Copy results to clipboard
+- Server hostname display
 - Responsive layout for desktop and mobile
+- Rate limiting and security headers
 
 ## Quick Start
-
-### Docker
 
 ```bash
 docker build -t speedtest .
@@ -26,19 +27,27 @@ Then open `http://localhost` in your browser.
 
 ## Tech Stack
 
-- **Backend:** Python, Flask, Gunicorn
+- **Backend:** Python 3.12, Flask, Gunicorn, Flask-Limiter
 - **Frontend:** Vanilla HTML/CSS/JavaScript (no frameworks)
-- **Container:** Docker (Python 3.9-slim)
+- **Container:** Docker (python:3.12-slim, non-root user)
 
 ## API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Serves the web UI |
-| `/download` | GET | Streams the 100MB test file |
-| `/upload` | POST | Accepts a file upload, returns duration |
-| `/ping` | GET | Returns a minimal JSON response for latency measurement |
-| `/jitter` | GET | Returns jitter measurement |
+| Endpoint    | Method | Description                                        |
+| ----------- | ------ | -------------------------------------------------- |
+| `/`         | GET    | Serves the web UI                                  |
+| `/download` | GET    | Streams the 100MB test file (10 req/min)           |
+| `/upload`   | POST   | Accepts a file upload, max 150MB (10 req/min)      |
+| `/ping`     | GET    | Returns server hostname for latency measurement    |
+| `/health`   | GET    | Health check endpoint for container orchestration  |
+
+## Security
+
+- Non-root container user
+- Upload size limit (150MB)
+- Uploaded test files are deleted immediately after saving
+- Rate limiting on all endpoints
+- Security headers: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
 
 ## License
 

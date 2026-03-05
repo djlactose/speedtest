@@ -321,6 +321,41 @@
       text-align: center;
     }
 
+    /* Server info */
+    .server-info {
+      font-size: 0.75rem;
+      color: #607d8b;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Copy button */
+    .copy-btn {
+      background: #1a2733;
+      color: #90a4ae;
+      border: 1px solid #263843;
+      border-radius: 6px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .copy-btn.visible {
+      display: inline-block;
+    }
+
+    .copy-btn:hover {
+      background: #263843;
+      color: #e0e0e0;
+    }
+
+    .copy-btn:focus-visible {
+      outline: 2px solid #64b5f6;
+      outline-offset: 2px;
+    }
+
     /* Footer */
     footer {
       text-align: center;
@@ -450,6 +485,10 @@
       </div>
     </div>
 
+    <div class="server-info" id="serverInfo"></div>
+
+    <button class="copy-btn" id="copyBtn">Copy Results</button>
+
     <div class="individual-tests">
       <button class="test-btn" id="downloadBtn">Download Only</button>
       <button class="test-btn" id="uploadBtn">Upload Only</button>
@@ -472,6 +511,10 @@
     const errorText = document.getElementById('errorText');
     const retryBtn = document.getElementById('retryBtn');
     const testBtns = document.querySelectorAll('.test-btn');
+    const serverInfo = document.getElementById('serverInfo');
+    const copyBtn = document.getElementById('copyBtn');
+
+    let serverName = '';
 
     const cards = {
       download: {
@@ -686,7 +729,11 @@
       const startTime = performance.now();
       const response = await fetch('/ping', { signal });
       if (!response.ok) throw new Error('Ping failed');
-      await response.json();
+      const data = await response.json();
+      if (data.server && !serverName) {
+        serverName = data.server;
+        serverInfo.textContent = 'Server: ' + serverName;
+      }
       const ms = (performance.now() - startTime).toFixed(1);
 
       updateProgress('ping', 100);
@@ -733,6 +780,7 @@
 
       try {
         await testFn(abortController.signal);
+        copyBtn.classList.add('visible');
       } catch (err) {
         if (err.name === 'AbortError' || err.message === 'Cancelled') {
           setStatus('Test cancelled.');
@@ -773,6 +821,7 @@
           await fn(abortController.signal);
         }
         setStatus('All tests complete.');
+        copyBtn.classList.add('visible');
       } catch (err) {
         if (err.name === 'AbortError' || err.message === 'Cancelled') {
           setStatus('Tests cancelled.');
@@ -795,6 +844,23 @@
     retryBtn.addEventListener('click', () => {
       hideError();
       if (lastTestFn) lastTestFn();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const lines = ['Speed Test Results'];
+      if (serverName) lines.push('Server: ' + serverName);
+      const dl = cards.download.quality.textContent;
+      const ul = cards.upload.quality.textContent;
+      const pg = cards.ping.quality.textContent;
+      const jt = cards.jitter.quality.textContent;
+      if (dl) lines.push('Download: ' + cards.download.value.textContent);
+      if (ul) lines.push('Upload: ' + cards.upload.value.textContent);
+      if (pg) lines.push('Ping: ' + cards.ping.value.textContent);
+      if (jt) lines.push('Jitter: ' + cards.jitter.value.textContent);
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy Results'; }, 2000);
+      });
     });
 
     document.getElementById('downloadBtn').addEventListener('click', () => runSingleTest('download', testDownload));
