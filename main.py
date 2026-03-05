@@ -1,8 +1,11 @@
 from flask import Flask, request, send_from_directory, jsonify, Response, abort
-import os, socket
+import logging, os, socket
 from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -29,6 +32,16 @@ def index():
     return send_from_directory(BASE_DIR, 'index.html')
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+
+@app.route('/robots.txt')
+def robots():
+    return Response("User-agent: *\nDisallow: /\n", mimetype='text/plain')
+
+
 @app.route('/health')
 @limiter.limit("60/minute")
 def health():
@@ -40,13 +53,15 @@ def health():
 def download_file():
     if not os.path.exists(DOWNLOAD_FILE):
         abort(404, description="Download file not found")
+    logger.info("Download started from %s", request.remote_addr)
     def generate():
         with open(DOWNLOAD_FILE, 'rb') as f:
-            while (chunk := f.read(4096)):
+            while (chunk := f.read(131072)):
                 yield chunk
     return Response(generate(), headers={
         'Content-Disposition': 'attachment; filename=100MB.bin',
-        'Content-Type': 'application/octet-stream'
+        'Content-Type': 'application/octet-stream',
+        'Cache-Control': 'no-store'
     })
 
 
@@ -63,11 +78,13 @@ def upload_file():
         return jsonify(error="Invalid filename"), 400
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
+    size = os.path.getsize(filepath)
+    logger.info("Upload complete from %s: %d bytes", request.remote_addr, size)
     try:
         os.remove(filepath)
     except OSError:
         pass
-    return jsonify(status="ok")
+    return jsonify(status="ok", size=size)
 
 
 @app.route('/ping')

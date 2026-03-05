@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Internet Speed Test</title>
+  <link rel="icon" href="data:,">
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -867,6 +868,14 @@
     document.getElementById('uploadBtn').addEventListener('click', () => runSingleTest('upload', testUpload));
     document.getElementById('pingBtn').addEventListener('click', () => runSingleTest('ping', testPing));
     document.getElementById('jitterBtn').addEventListener('click', () => runSingleTest('jitter', testJitter));
+
+    // Fetch server info on page load
+    fetch('/ping').then(r => r.json()).then(data => {
+      if (data.server) {
+        serverName = data.server;
+        serverInfo.textContent = 'Server: ' + serverName;
+      }
+    }).catch(() => {});
   </script>
 </body>
 </html>

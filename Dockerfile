@@ -16,4 +16,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 USER appuser
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:80", "main:app"]
+ENV WORKERS=4
+
+CMD gunicorn -w $WORKERS -b 0.0.0.0:80 main:app
