@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
 # Pinned by digest for reproducibility and Docker Scout tracking.
-# Refresh the digest periodically: `docker buildx imagetools inspect python:3.13-slim-bookworm`
-ARG PYTHON_IMAGE=python:3.13-slim-bookworm@sha256:bb73517d48bd32016e15eade0c009b2724ec3a025a9975b5cd9b251d0dcadb33
+# Refresh the digest periodically: `docker buildx imagetools inspect python:3.13-alpine`
+ARG PYTHON_IMAGE=python:3.13-alpine@sha256:420cd0bf0f3998275875e02ecd5808168cf0843cbb4d3c536432f729247b2acc
 
 FROM ${PYTHON_IMAGE} AS builder
 
@@ -13,9 +13,9 @@ ENV PIP_NO_CACHE_DIR=1 \
 
 WORKDIR /build
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && rm -rf /var/lib/apt/lists/*
+# Upgrade base + add toolchain for any C extensions without musllinux wheels.
+RUN apk upgrade --no-cache \
+ && apk add --no-cache --virtual .build-deps gcc musl-dev python3-dev libffi-dev
 
 COPY requirements.lock ./
 RUN pip install --prefix=/install --no-compile -r requirements.lock
@@ -30,12 +30,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8080 \
     UPLOAD_FOLDER=/tmp
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends tini \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* \
- && useradd -m -u ${APP_UID} appuser
+RUN apk upgrade --no-cache \
+ && apk add --no-cache tini \
+ && adduser -D -u ${APP_UID} appuser
 
 WORKDIR /usr/src/app
 
@@ -49,7 +46,7 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import os,sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/health').status == 200 else 1)" || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["sh", "-c", "exec gunicorn -w $WORKERS -b 0.0.0.0:$PORT main:app"]
 
 LABEL org.opencontainers.image.title="speedtest" \
