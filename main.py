@@ -21,7 +21,12 @@ app = Flask(
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024
 
-limiter = Limiter(get_remote_address, app=app, default_limits=[])
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://",
+)
 
 
 CSP = (
