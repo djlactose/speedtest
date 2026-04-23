@@ -391,8 +391,6 @@
   document.getElementById('pingBtn').addEventListener('click', () => runSingleTest('ping', testPing));
   document.getElementById('jitterBtn').addEventListener('click', () => runSingleTest('jitter', testJitter));
 
-  // Fetch server info on page load
-  fetch('/ping').then(r => r.json()).then(data => {
-    applyServerName(data.server);
-  }).catch(() => {});
+  serverName = window.location.host;
+  serverInfo.textContent = 'Server: ' + serverName;
 })();

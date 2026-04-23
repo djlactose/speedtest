@@ -28,6 +28,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     WORKERS=4 \
     PORT=8080 \
+    TIMEOUT=300 \
     UPLOAD_FOLDER=/tmp
 
 RUN apk upgrade --no-cache \
@@ -47,7 +48,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import os,sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/health').status == 200 else 1)" || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["sh", "-c", "exec gunicorn -w $WORKERS -b 0.0.0.0:$PORT main:app"]
+CMD ["sh", "-c", "exec gunicorn -w $WORKERS --timeout $TIMEOUT -b 0.0.0.0:$PORT main:app"]
 
 LABEL org.opencontainers.image.title="speedtest" \
       org.opencontainers.image.description="Self-hosted internet speed test in a hardened Python container" \

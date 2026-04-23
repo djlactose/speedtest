@@ -20,10 +20,10 @@ A self-hosted internet speed test application you can run in a Docker container.
 
 ```bash
 docker build -t speedtest .
-docker run -d -p 80:80 speedtest
+docker run -d -p 8080:8080 speedtest
 ```
 
-Then open `http://localhost` in your browser.
+Then open `http://localhost:8080` in your browser.
 
 ## Tech Stack
 
