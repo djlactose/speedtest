@@ -44,8 +44,8 @@ COPY --chown=appuser:appuser static/ ./static/
 USER appuser
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import os,sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/health').status == 200 else 1)" || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -q --spider "http://127.0.0.1:${PORT}/health" || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["sh", "-c", "exec gunicorn -w $WORKERS --timeout $TIMEOUT -b 0.0.0.0:$PORT main:app"]
