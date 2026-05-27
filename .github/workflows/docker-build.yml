@@ -38,5 +38,15 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: djlactose/speedtest:${{ steps.tag.outputs.value }}
+          sbom: true
+          provenance: mode=max
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Scan for critical/high CVEs
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: djlactose/speedtest:${{ steps.tag.outputs.value }}
+          only-severities: critical,high
+          exit-code: true
