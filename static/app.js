@@ -19,8 +19,10 @@
   const testBtns = document.querySelectorAll('.test-btn');
   const serverInfo = document.getElementById('serverInfo');
   const copyBtn = document.getElementById('copyBtn');
+  const runTime = document.getElementById('runTime');
 
   let serverName = '';
+  let runStartedAt = null;
 
   const cards = {
     download: {
@@ -93,6 +95,7 @@
     if (active) {
       allBtn.querySelector('.btn-label').textContent = label || 'Testing...';
       abortController = new AbortController();
+      runStartedAt = new Date();
     } else {
       allBtn.querySelector('.btn-label').textContent = 'Test All';
       abortController = null;
@@ -127,6 +130,13 @@
     cards[key].bar.setAttribute('aria-valuenow', Math.round(p));
   }
 
+  function setRunTime(date) {
+    runTime.textContent = date
+      ? 'Tested: ' + date.toISOString().slice(0, 19).replace('T', ' ') + ' UTC'
+      : '';
+    runTime.hidden = !date;
+  }
+
   function showSpinner(key) {
     const spinner = document.createElement('div');
     spinner.className = 'card-spinner';
@@ -147,6 +157,7 @@
     v.replaceChildren(numSpan, unitSpan);
     v.classList.add('result-appear');
     cards[key].quality.textContent = q.label;
+    setRunTime(runStartedAt);
   }
 
   function resetCard(key) {
@@ -159,6 +170,7 @@
     cards[key].value.classList.remove('result-appear');
     cards[key].quality.textContent = '';
     updateProgress(key, 0);
+    if (!Object.values(cards).some(c => c.quality.textContent)) setRunTime(null);
   }
 
   function resetAll() {
@@ -372,6 +384,7 @@
   copyBtn.addEventListener('click', () => {
     const lines = ['Speed Test Results'];
     if (serverName) lines.push('Server: ' + serverName);
+    if (runTime.textContent) lines.push(runTime.textContent);
     const dl = cards.download.quality.textContent;
     const ul = cards.upload.quality.textContent;
     const pg = cards.ping.quality.textContent;
